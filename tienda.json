@@ -3,10 +3,34 @@
   "cambios": "Lanzamiento inicial del Hub de Tiendas",
   "tiendas": [
     {
-      "nombre": "Tienda de Miguel",
-      "descripcion": "Herramientas, calculadoras y más",
+      "nombre": "Colaborador 1 (Miguel)",
+      "descripcion": "Calculadoras y herramientas",
       "autor": "Miguel",
       "url_json": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/tienda_miguel.json"
+    },
+    {
+      "nombre": "Colaborador 2",
+      "descripcion": "Próximamente...",
+      "autor": "Compañero 2",
+      "url_json": ""
+    },
+    {
+      "nombre": "Colaborador 3",
+      "descripcion": "Próximamente...",
+      "autor": "Compañero 3",
+      "url_json": ""
+    },
+    {
+      "nombre": "Colaborador 4",
+      "descripcion": "Próximamente...",
+      "autor": "Compañero 4",
+      "url_json": ""
+    },
+    {
+      "nombre": "Colaborador 5",
+      "descripcion": "Próximamente...",
+      "autor": "Compañero 5",
+      "url_json": ""
     }
   ]
 }
