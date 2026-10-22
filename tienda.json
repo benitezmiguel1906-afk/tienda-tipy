@@ -1,0 +1,11 @@
+[
+  {
+    "id": "plugin_prueba",
+    "nombre": "Complemento de Prueba",
+    "version": "1.0",
+    "autor": "Miguel Benítez",
+    "categoria": "Utilidades",
+    "descripcion": "Este es el primer complemento de prueba para la tienda tipi.",
+    "archivo": "prueba.ppk"
+  }
+]
