@@ -1,11 +1,12 @@
-[
-  {
-    "id": "calculadora_cientifica",
-    "nombre": "Calculadora Científica Accesible",
-    "version": "1.0",
-    "autor": "Miguel Benítez",
-    "categoria": "Utilidades",
-    "descripcion": "Calculadora científica adaptada para una lectura fluida con lector de pantalla.",
-    "archivo": "calculadora_cientifica.lua"
-  }
-]
+{
+  "version": "1.1",
+  "cambios": "Lanzamiento inicial del Hub de Tiendas",
+  "tiendas": [
+    {
+      "nombre": "Tienda de Miguel",
+      "descripcion": "Herramientas, calculadoras y más",
+      "autor": "Miguel",
+      "url_json": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/tienda_miguel.json"
+    }
+  ]
+}
