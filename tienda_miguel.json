@@ -1,0 +1,10 @@
+[
+  {
+    "nombre": "Calculadora Científica",
+    "archivo": "calculadora_cientifica.lua",
+    "version": "1.0",
+    "autor": "Miguel",
+    "descripcion": "Calculadora accesible",
+    "url_base": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/"
+  }
+]
