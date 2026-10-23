@@ -1,6 +1,6 @@
 {
-  "version": "1.1",
-  "cambios": "Lanzamiento de TIPI Store Colaborativa con la identidad del equipo.",
+  "version": "1.2",
+  "cambios": "Integración de la tienda de Alejandro Romero.",
   "tiendas": [
     {
       "nombre": "Miguel",
@@ -10,9 +10,9 @@
     },
     {
       "nombre": "Alejandro Romero",
-      "descripcion": "Próximamente...",
+      "descripcion": "Complementos de Alex: Dictado y Texto a Audio.",
       "autor": "Alejandro",
-      "url_json": ""
+      "url_json": "https://raw.githubusercontent.com/romeroa123lejandro-collab/Tienda-Tipy-/refs/heads/main/tienda_alejandro.json"
     },
     {
       "nombre": "Samuel López",
