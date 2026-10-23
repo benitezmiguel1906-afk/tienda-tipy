@@ -12,7 +12,15 @@
     "archivo": "aventura_ia.lua",
     "version": "1.0",
     "autor": "Miguel",
-    "descripcion": "Juego de aventura conversacional usando la IA de Google Gemini",
+    "descripcion": "Juego de aventura conversacional",
+    "url_base": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/"
+  },
+  {
+    "nombre": "Chat Boot",
+    "archivo": "chat_boot.lua",
+    "version": "1.0",
+    "autor": "Miguel",
+    "descripcion": "Mi nuevo plugin subido desde la app",
     "url_base": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/"
   }
 ]
