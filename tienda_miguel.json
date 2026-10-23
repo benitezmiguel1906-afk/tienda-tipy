@@ -6,5 +6,13 @@
     "autor": "Miguel",
     "descripcion": "Calculadora accesible",
     "url_base": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/"
+  },
+  {
+    "nombre": "Aventura Mágica con IA",
+    "archivo": "aventura_ia.lua",
+    "version": "1.0",
+    "autor": "Miguel",
+    "descripcion": "Juego de aventura conversacional usando la IA de Google Gemini",
+    "url_base": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/"
   }
 ]
