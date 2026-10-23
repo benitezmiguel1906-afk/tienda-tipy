@@ -1,35 +1,35 @@
 {
   "version": "1.1",
-  "cambios": "Lanzamiento inicial del Hub de Tiendas",
+  "cambios": "Lanzamiento de TIPI Store Colaborativa con la identidad del equipo.",
   "tiendas": [
     {
-      "nombre": "Colaborador 1 (Miguel)",
+      "nombre": "Miguel",
       "descripcion": "Calculadoras y herramientas",
       "autor": "Miguel",
       "url_json": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/tienda_miguel.json"
     },
     {
-      "nombre": "Colaborador 2",
+      "nombre": "Alejandro Romero",
       "descripcion": "Próximamente...",
-      "autor": "Compañero 2",
+      "autor": "Alejandro",
       "url_json": ""
     },
     {
-      "nombre": "Colaborador 3",
+      "nombre": "Samuel López",
       "descripcion": "Próximamente...",
-      "autor": "Compañero 3",
+      "autor": "Samuel",
       "url_json": ""
     },
     {
-      "nombre": "Colaborador 4",
+      "nombre": "Néstor Ayala",
       "descripcion": "Próximamente...",
-      "autor": "Compañero 4",
+      "autor": "Néstor",
       "url_json": ""
     },
     {
-      "nombre": "Colaborador 5",
+      "nombre": "Sara González (TIPI)",
       "descripcion": "Próximamente...",
-      "autor": "Compañero 5",
+      "autor": "Sara",
       "url_json": ""
     }
   ]
