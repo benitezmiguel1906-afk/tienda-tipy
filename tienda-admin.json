@@ -1,11 +1,12 @@
 {
-  "version": 3,
+  "version": 4,
   "plugins": [
     {
       "nombre": "Tienda de administradores",
       "version": "1.0",
-      "descripcion": "Tienda exclusiva para administradores. Incluye plugins Lua y aplicaciones APK.",
-      "url": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/plugin_tienda_administradores.lua"
+      "descripcion": "Tienda exclusiva para administradores.",
+      "archivo": "plugin_tienda_administradores.lua",
+      "url_base": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/"
     }
   ],
   "aplicaciones": []
