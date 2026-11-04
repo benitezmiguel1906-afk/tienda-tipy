@@ -1,5 +1,6 @@
 {
   "version": 1,
+  "plugins": [],
   "aplicaciones": [
     {
       "nombre": "DJ TIPY",
