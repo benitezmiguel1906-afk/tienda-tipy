@@ -1,6 +1,6 @@
 {
-  "version": "1.3",
-  "cambios": "Se agregaron una tienda exclusiva para administradores y otra para los miembros de Tecnología Inclusiva Paraguay.",
+  "version": "1.4",
+  "cambios": "Se separaron las tiendas de administradores y de miembros en plugins independientes.",
   "tiendas": [
     {
       "nombre": "Miguel",
@@ -31,18 +31,6 @@
       "descripcion": "Próximamente...",
       "autor": "Sara",
       "url_json": ""
-    },
-    {
-      "nombre": "Administradores TIPI",
-      "descripcion": "Plugins y aplicaciones para los administradores.",
-      "autor": "Tecnología Inclusiva Paraguay",
-      "url_json": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/tienda-admin.json"
-    },
-    {
-      "nombre": "Miembros de Tecnología Inclusiva Paraguay",
-      "descripcion": "Plugins y aplicaciones aprobados para los miembros.",
-      "autor": "Tecnología Inclusiva Paraguay",
-      "url_json": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/tienda-miembros.json"
     }
   ]
 }
