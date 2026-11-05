@@ -1,0 +1,304 @@
+require "import"
+import "android.widget.LinearLayout"
+import "android.widget.TextView"
+import "android.widget.Button"
+import "android.widget.ScrollView"
+import "android.content.Context"
+import "android.content.Intent"
+import "android.net.Uri"
+import "android.os.Build"
+import "android.os.Environment"
+import "android.provider.Settings"
+import "android.os.Handler"
+import "android.os.Looper"
+import "java.net.URL"
+import "java.io.File"
+import "java.io.ByteArrayOutputStream"
+import "java.io.BufferedReader"
+import "java.io.InputStreamReader"
+import "android.graphics.Color"
+import "android.graphics.drawable.GradientDrawable"
+import "android.graphics.drawable.ColorDrawable"
+
+local ctx = activity or service
+local handler = Handler(Looper.getMainLooper())
+local CATALOGO_PUBLICO = "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/tienda-miembros.json"
+local COLOR_FONDO = 0xFF0F172A
+local COLOR_TARJETA = 0xFF1E293B
+local COLOR_TEXTO = 0xFFFFFFFF
+local COLOR_SECUNDARIO = 0xFFCBD5E1
+local COLOR_AZUL = 0xFF0038A8
+local COLOR_ROJO = 0xFFD52B1E
+local dialogoPrincipal = nil
+
+local function obtener_json()
+    local ok, lib = pcall(require, "cjson")
+    if ok then return lib end
+    ok, lib = pcall(require, "json")
+    if ok then return lib end
+    return nil
+end
+local json = obtener_json()
+
+local function hablar(texto)
+    pcall(function() service.speak(tostring(texto)) end)
+end
+
+local function mostrarMensaje(titulo, mensaje)
+    local dlg = LuaDialog(ctx)
+    dlg.setTitle(tostring(titulo))
+    local texto = TextView(ctx)
+    texto.setText(tostring(mensaje))
+    texto.setTextColor(Color.BLACK)
+    texto.setTextSize(16)
+    texto.setPadding(30, 30, 30, 30)
+    dlg.setView(texto)
+    dlg.setPositiveButton("Cerrar", function() dlg.dismiss() end)
+    dlg.show()
+end
+
+local function permisoAlmacenamiento()
+    if Build.VERSION.SDK_INT >= Build.VERSION_CODES.R then
+        local ok, tiene = pcall(function() return Environment.isExternalStorageManager() end)
+        if ok and tiene then return true end
+        pcall(function()
+            local intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+            intent.setData(Uri.parse("package:" .. ctx.getPackageName()))
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            ctx.startActivity(intent)
+        end)
+        hablar("Debe permitir el acceso al almacenamiento y volver a abrir la tienda.")
+        return false
+    end
+    return true
+end
+
+local function descargarTexto(url)
+    local cuerpo, codigo, error = nil, nil, nil
+    local ok, fallo = pcall(function()
+        local conexion = URL(tostring(url)).openConnection()
+        conexion.setRequestMethod("GET")
+        conexion.setConnectTimeout(15000)
+        conexion.setReadTimeout(15000)
+        conexion.setInstanceFollowRedirects(true)
+        conexion.setRequestProperty("User-Agent", "TIPI-Store-Publica")
+        conexion.setRequestProperty("Accept-Encoding", "identity")
+        codigo = conexion.getResponseCode()
+        local flujo = nil
+        if codigo >= 200 and codigo < 300 then flujo = conexion.getInputStream() else flujo = conexion.getErrorStream() end
+        if flujo then
+            local buffer = ByteArrayOutputStream()
+            local bytes = byte[4096]
+            while true do
+                local cantidad = flujo.read(bytes)
+                if cantidad == -1 then break end
+                buffer.write(bytes, 0, cantidad)
+            end
+            flujo.close()
+            cuerpo = tostring(buffer.toString("UTF-8"))
+            buffer.close()
+        end
+        conexion.disconnect()
+    end)
+    if not ok then error = tostring(fallo) end
+    return cuerpo, codigo, error
+end
+
+local function abrirDescargaAPK(url, nombre)
+    if not url or tostring(url) == "" then
+        hablar("La aplicacion no tiene enlace de descarga.")
+        return
+    end
+    local ok = pcall(function()
+        local intent = Intent(Intent.ACTION_VIEW)
+        intent.setData(Uri.parse(tostring(url)))
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        ctx.startActivity(intent)
+    end)
+    if ok then hablar("Abriendo descarga de " .. tostring(nombre)) else hablar("No se pudo abrir la descarga.") end
+end
+
+local function instalarPlugin(url, archivo, nombre)
+    if not permisoAlmacenamiento() then return end
+    local nombreSeguro = tostring(archivo or "main.lua"):gsub("%.lua$", "")
+    local carpeta = "/storage/emulated/0/解说/Plugins/" .. nombreSeguro .. "/"
+    local objeto = File(carpeta)
+    if not objeto.exists() then objeto.mkdirs() end
+    local destino = carpeta .. "main.lua"
+    hablar("Descargando " .. tostring(nombre))
+    Thread(Runnable{
+        run = function()
+            local cuerpo, codigo, error = descargarTexto(url)
+            handler.post(function()
+                if error or codigo ~= 200 or not cuerpo or #cuerpo == 0 then
+                    mostrarMensaje("Error", "No se pudo descargar el plugin. Codigo: " .. tostring(codigo))
+                    hablar("Error al descargar el plugin.")
+                    return
+                end
+                local archivoSalida = io.open(destino, "wb")
+                if not archivoSalida then
+                    mostrarMensaje("Error", "No se pudo guardar el plugin en el telefono.")
+                    hablar("No se pudo guardar el plugin.")
+                    return
+                end
+                archivoSalida:write(cuerpo)
+                archivoSalida:close()
+                mostrarMensaje("Plugin descargado", "El plugin se guardo correctamente. Reinicie Jieshuo para activarlo.")
+                hablar("Plugin descargado. Reinicie Jieshuo para activarlo.")
+            end)
+        end
+    }).start()
+end
+
+local function construirURLPlugin(elemento)
+    if elemento.url and tostring(elemento.url) ~= "" then return tostring(elemento.url) end
+    return tostring(elemento.url_base or "") .. tostring(elemento.archivo or "")
+end
+
+local function mostrarElementos(lista)
+    local dlg = LuaDialog(ctx)
+    dlg.setTitle("Tienda TIPI publica")
+    local scroll = ScrollView(ctx)
+    local contenedor = LinearLayout(ctx)
+    contenedor.setOrientation(LinearLayout.VERTICAL)
+    contenedor.setPadding(20, 20, 20, 20)
+    contenedor.setBackgroundColor(COLOR_FONDO)
+    scroll.addView(contenedor)
+
+    for _, elemento in ipairs(lista) do
+        local tarjeta = LinearLayout(ctx)
+        tarjeta.setOrientation(LinearLayout.VERTICAL)
+        tarjeta.setPadding(30, 30, 30, 30)
+        local fondo = GradientDrawable()
+        fondo.setColor(COLOR_TARJETA)
+        fondo.setCornerRadius(30)
+        tarjeta.setBackground(fondo)
+
+        local nombre = tostring(elemento.nombre or "Elemento sin nombre")
+        local version = tostring(elemento.versionName or elemento.version or "1.0")
+        local esAPK = elemento.tipo == "apk"
+        local titulo = TextView(ctx)
+        titulo.setText(nombre .. " version " .. version)
+        titulo.setTextColor(COLOR_TEXTO)
+        titulo.setTextSize(18)
+        local descripcion = TextView(ctx)
+        descripcion.setText((esAPK and "Aplicacion APK\n" or "Plugin Lua\n") .. tostring(elemento.descripcion or "Sin descripcion"))
+        descripcion.setTextColor(COLOR_SECUNDARIO)
+        descripcion.setTextSize(15)
+        descripcion.setPadding(0, 10, 0, 20)
+        local boton = Button(ctx)
+        boton.setText(esAPK and "DESCARGAR APK" or "INSTALAR PLUGIN")
+        boton.setTextColor(Color.WHITE)
+        local fondoBoton = GradientDrawable()
+        fondoBoton.setColor(esAPK and COLOR_ROJO or COLOR_AZUL)
+        fondoBoton.setCornerRadius(20)
+        boton.setBackground(fondoBoton)
+        boton.setContentDescription(boton.getText())
+        boton.setOnClickListener(function()
+            dlg.dismiss()
+            if esAPK then
+                abrirDescargaAPK(elemento.url or elemento.apkUrl, nombre)
+            else
+                instalarPlugin(construirURLPlugin(elemento), elemento.archivo or "main.lua", nombre)
+            end
+        end)
+        tarjeta.addView(titulo)
+        tarjeta.addView(descripcion)
+        tarjeta.addView(boton)
+        local parametros = LinearLayout.LayoutParams(-1, -2)
+        parametros.setMargins(0, 0, 0, 20)
+        contenedor.addView(tarjeta, parametros)
+    end
+
+    if #lista == 0 then
+        local vacio = TextView(ctx)
+        vacio.setText("No hay aplicaciones ni plugins publicados.")
+        vacio.setTextColor(COLOR_TEXTO)
+        vacio.setTextSize(17)
+        vacio.setPadding(20, 40, 20, 40)
+        contenedor.addView(vacio)
+    end
+    dlg.setView(scroll)
+    dlg.setNegativeButton("Cerrar", function() dlg.dismiss() end)
+    dlg.show()
+    pcall(function() dlg.getWindow().setBackgroundDrawable(ColorDrawable(COLOR_FONDO)) end)
+end
+
+local function cargarTienda()
+    hablar("Cargando Tienda TIPI publica.")
+    Thread(Runnable{
+        run = function()
+            local cuerpo, codigo, error = descargarTexto(CATALOGO_PUBLICO)
+            handler.post(function()
+                if error or codigo ~= 200 or not cuerpo then
+                    mostrarMensaje("Error de conexion", "No se pudo cargar la tienda. Codigo: " .. tostring(codigo))
+                    hablar("No se pudo cargar la tienda.")
+                    return
+                end
+                local ok, datos = pcall(function() return json.decode(cuerpo) end)
+                if not ok or type(datos) ~= "table" then
+                    mostrarMensaje("Error", "El catalogo publico no tiene un formato valido.")
+                    hablar("El catalogo tiene errores.")
+                    return
+                end
+                local lista = {}
+                if type(datos.plugins) == "table" then
+                    for _, plugin in ipairs(datos.plugins) do
+                        plugin.tipo = "plugin"
+                        table.insert(lista, plugin)
+                    end
+                end
+                if type(datos.aplicaciones) == "table" then
+                    for _, aplicacion in ipairs(datos.aplicaciones) do
+                        aplicacion.tipo = "apk"
+                        table.insert(lista, aplicacion)
+                    end
+                end
+                mostrarElementos(lista)
+            end)
+        end
+    }).start()
+end
+
+local function abrirTienda()
+    if dialogoPrincipal then pcall(function() dialogoPrincipal.dismiss() end) end
+    dialogoPrincipal = LuaDialog(ctx)
+    dialogoPrincipal.setTitle("Tienda TIPI")
+    local raiz = LinearLayout(ctx)
+    raiz.setOrientation(LinearLayout.VERTICAL)
+    raiz.setPadding(30, 30, 30, 30)
+    raiz.setBackgroundColor(COLOR_FONDO)
+    local bienvenida = TextView(ctx)
+    bienvenida.setText("Tienda TIPI publica\nPlugins y aplicaciones para la comunidad")
+    bienvenida.setTextColor(COLOR_TEXTO)
+    bienvenida.setTextSize(19)
+    bienvenida.setPadding(0, 0, 0, 25)
+    raiz.addView(bienvenida)
+    local actualizar = Button(ctx)
+    actualizar.setText("CARGAR TIENDA")
+    actualizar.setContentDescription("Cargar tienda publica")
+    actualizar.setOnClickListener(function() cargarTienda() end)
+    raiz.addView(actualizar)
+    local terminos = Button(ctx)
+    terminos.setText("INFORMACION")
+    terminos.setOnClickListener(function()
+        mostrarMensaje("Tienda TIPI", "Esta tienda publica contiene plugins y aplicaciones gratuitos para la comunidad Tecnologia Inclusiva Paraguay. El contenido pertenece a sus respectivos autores.")
+    end)
+    raiz.addView(terminos)
+    local cerrar = Button(ctx)
+    cerrar.setText("CERRAR")
+    cerrar.setOnClickListener(function() dialogoPrincipal.dismiss() end)
+    raiz.addView(cerrar)
+    dialogoPrincipal.setView(raiz)
+    dialogoPrincipal.show()
+    pcall(function() dialogoPrincipal.getWindow().setBackgroundDrawable(ColorDrawable(COLOR_FONDO)) end)
+end
+
+if not json then
+    hablar("Error: no se encontro la libreria JSON.")
+    return
+end
+
+abrirTienda()
+cargarTienda()
+return true
