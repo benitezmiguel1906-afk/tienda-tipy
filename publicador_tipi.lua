@@ -1,4 +1,4 @@
-require "import"
+requiere "import"
 import "android.widget.LinearLayout"
 import "android.widget.TextView"
 import "android.widget.Button"
