@@ -1,4 +1,4 @@
-requiere "import"
+require "import"
 import "android.widget.LinearLayout"
 import "android.widget.TextView"
 import "android.widget.Button"
@@ -128,10 +128,10 @@ local function mostrarError(titulo, msj)
 end
 
 -- =====================================================================
--- LÓGICA DE SUBIDA A GITHUB Y ACTUALIZACIÓN AUTOMÁTICA DEL JSON
+-- L脫GICA DE SUBIDA A GITHUB Y ACTUALIZACI脫N AUTOM脕TICA DEL JSON
 -- =====================================================================
 local function subirPluginCompleto(user, repo, token, nombre_json, nombre_archivo, nombre_visible, desc_visible, codigo_lua)
-    service.speak("Subiendo plugin y actualizando catálogo...")
+    service.speak("Subiendo plugin y actualizando cat谩logo...")
     
     Thread(Runnable({
         run = function()
@@ -216,15 +216,31 @@ local function subirPluginCompleto(user, repo, token, nombre_json, nombre_archiv
                         sha_json = data.sha
                         -- Decodificar el Base64 que devuelve GitHub para leer el JSON real
                         local base64_raw = tostring(data.content):gsub("%s+", "")
-                        contenido_json_actual = luajava.newInstance("java.lang.String", Base64.decode(base64_raw, Base64.DEFAULT), "UTF-8")
+                        contenido_json_actual = tostring(luajava.newInstance("java.lang.String", Base64.decode(base64_raw, Base64.DEFAULT), "UTF-8"))
                     end
                 end
                 connGetJson.disconnect()
 
-                -- Parsear el JSON actual, agregar el nuevo plugin y volver a codificar
-                local lista_plugins = json.decode(contenido_json_actual) or {}
+                -- Parsear el JSON actual y conservar su estructura.
+                contenido_json_actual = tostring(contenido_json_actual or "")
+                local okCatalogo, catalogo = pcall(function()
+                    return json.decode(contenido_json_actual)
+                end)
+                if not okCatalogo or type(catalogo) ~= "table" then
+                    catalogo = { version = 1, plugins = {}, aplicaciones = {} }
+                end
+
+                local lista_plugins
+                if catalogo.plugins and type(catalogo.plugins) == "table" then
+                    lista_plugins = catalogo.plugins
+                else
+                    -- Compatibilidad con cat谩logos antiguos que eran una lista directa.
+                    lista_plugins = catalogo
+                    catalogo = { version = 1, plugins = lista_plugins, aplicaciones = {} }
+                end
+
                 local url_base = "https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/main/"
-                
+
                 table.insert(lista_plugins, {
                     nombre = nombre_visible,
                     archivo = nombre_archivo,
@@ -233,11 +249,14 @@ local function subirPluginCompleto(user, repo, token, nombre_json, nombre_archiv
                     descripcion = desc_visible,
                     url_base = url_base
                 })
-                
-                local nuevo_json_string = json.encode(lista_plugins)
+                catalogo.plugins = lista_plugins
+                if type(catalogo.aplicaciones) ~= "table" then catalogo.aplicaciones = {} end
+                if not catalogo.version then catalogo.version = 1 end
+
+                local nuevo_json_string = json.encode(catalogo)
                 local base64_json = Base64.encodeToString(luajava.newInstance("java.lang.String", nuevo_json_string).getBytes("UTF-8"), Base64.NO_WRAP)
 
-                local dataJson = { message = "Actualizando catálogo con " .. nombre_visible, content = base64_json }
+                local dataJson = { message = "Actualizando cat谩logo con " .. nombre_visible, content = base64_json }
                 if sha_json then dataJson.sha = sha_json end
 
                 local connPutJson = URL(url_json).openConnection()
@@ -268,11 +287,11 @@ local function subirPluginCompleto(user, repo, token, nombre_json, nombre_archiv
 
             handler.post(function()
                 if exito_lua and exito_json then
-                    service.speak("¡Plugin y catálogo actualizados con éxito!")
-                    mostrarError("Éxito Total", "El plugin " .. nombre_visible .. " se subió y se agregó al catálogo automáticamente.\n\nYa puedes entrar a la tienda para verlo.")
+                    service.speak("隆Plugin y cat谩logo actualizados con 茅xito!")
+                    mostrarError("脡xito Total", "El plugin " .. nombre_visible .. " se subi贸 y se agreg贸 al cat谩logo autom谩ticamente.\n\nYa puedes entrar a la tienda para verlo.")
                 elseif exito_lua and not exito_json then
-                    service.speak("Plugin subido, pero falló el catálogo.")
-                    mostrarError("Aviso", "El archivo .lua se subió, pero no se pudo actualizar el JSON automáticamente.\n\nDetalle: " .. errorMsg)
+                    service.speak("Plugin subido, pero fall贸 el cat谩logo.")
+                    mostrarError("Aviso", "El archivo .lua se subi贸, pero no se pudo actualizar el JSON autom谩ticamente.\n\nDetalle: " .. errorMsg)
                 else
                     service.speak("Error al subir.")
                     mostrarError("Error de GitHub", "No se pudo subir.\n\nDetalle:\n" .. errorMsg)
@@ -308,9 +327,9 @@ local function abrirPanelAdmin()
             { EditText, id = "input_repo", text = "tienda-tipy", textColor = COLOR_TEXTO, layout_width = "fill", layout_marginBottom = "10dp" },
             
             { TextView, text = "Token de GitHub:", textColor = COLOR_TEXTO_SEC },
-            { EditText, id = "input_token", hint = "Pega tu token aquí", textColor = COLOR_TEXTO, hintTextColor = COLOR_TEXTO_SEC, layout_width = "fill", layout_marginBottom = "10dp" },
+            { EditText, id = "input_token", hint = "Pega tu token aqu铆", textColor = COLOR_TEXTO, hintTextColor = COLOR_TEXTO_SEC, layout_width = "fill", layout_marginBottom = "10dp" },
             
-            { TextView, text = "Catálogo de destino:", textColor = COLOR_TEXTO_SEC },
+            { TextView, text = "Cat谩logo de destino:", textColor = COLOR_TEXTO_SEC },
             { Button, id = "btn_catalogo", text = "Tienda de administradores", layout_width = "fill", layout_marginBottom = "15dp" },
             
             -- Datos del plugin
@@ -320,13 +339,13 @@ local function abrirPanelAdmin()
             { TextView, text = "Nombre del archivo .lua:", textColor = COLOR_TEXTO_SEC },
             { EditText, id = "input_archivo", hint = "Ej: chat_boot.lua", textColor = COLOR_TEXTO, hintTextColor = COLOR_TEXTO_SEC, layout_width = "fill", layout_marginBottom = "10dp" },
             
-            { TextView, text = "Descripción corta:", textColor = COLOR_TEXTO_SEC },
+            { TextView, text = "Descripci贸n corta:", textColor = COLOR_TEXTO_SEC },
             { EditText, id = "input_desc", hint = "Ej: Un bot de chat inteligente", textColor = COLOR_TEXTO, hintTextColor = COLOR_TEXTO_SEC, layout_width = "fill", layout_marginBottom = "15dp" },
             
-            { TextView, text = "Código Lua completo:", textColor = COLOR_TEXTO_SEC },
-            { EditText, id = "input_codigo", hint = "Pega aquí el código...", textColor = COLOR_TEXTO, hintTextColor = COLOR_TEXTO_SEC, layout_width = "fill", layout_height = "150dp", gravity = "top", layout_marginBottom = "15dp" },
+            { TextView, text = "C贸digo Lua completo:", textColor = COLOR_TEXTO_SEC },
+            { EditText, id = "input_codigo", hint = "Pega aqu铆 el c贸digo...", textColor = COLOR_TEXTO, hintTextColor = COLOR_TEXTO_SEC, layout_width = "fill", layout_height = "150dp", gravity = "top", layout_marginBottom = "15dp" },
             
-            { Button, id = "btn_subir", text = "PUBLICAR PLUGIN Y ACTUALIZAR CATÁLOGO", layout_width = "fill", layout_marginBottom = "8dp" },
+            { Button, id = "btn_subir", text = "PUBLICAR PLUGIN Y ACTUALIZAR CAT脕LOGO", layout_width = "fill", layout_marginBottom = "8dp" },
             { Button, id = "btn_cerrar_admin", text = "Cerrar", layout_width = "fill" }
         }
     }
@@ -383,11 +402,11 @@ local function abrirPanelAdmin()
 end
 
 -- =====================================================================
--- TÉRMINOS Y PERFILES
+-- T脡RMINOS Y PERFILES
 -- =====================================================================
 local function mostrarTerminos()
     local dlg = LuaDialog(ctx)
-    dlg.setTitle("Términos y Condiciones")
+    dlg.setTitle("T茅rminos y Condiciones")
     
     local scroll = ScrollView(ctx)
     local layout = LinearLayout(ctx)
@@ -396,16 +415,16 @@ local function mostrarTerminos()
     layout.setBackgroundColor(COLOR_FONDO)
     
     local texto = [[
-Bienvenido a TIPI Store y Publicador Colaborativo (Tecnología Inclusiva Paraguay).
+Bienvenido a TIPI Store y Publicador Colaborativo (Tecnolog铆a Inclusiva Paraguay).
 
 1. Proyecto Colaborativo
-Esta tienda es un esfuerzo conjunto de los miembros de TIPI. Los administradores y creadores (Sara González, Miguel, Alejandro, Samuel y Néstor) trabajan para ofrecer herramientas accesibles.
+Esta tienda es un esfuerzo conjunto de los miembros de TIPI. Los administradores y creadores (Sara Gonz谩lez, Miguel, Alejandro, Samuel y N茅stor) trabajan para ofrecer herramientas accesibles.
 
 2. Respeto a la Propiedad Intelectual
-Cada creador gestiona su propio catálogo. Está prohibido copiar plugins de otros repositorios y subirlos aquí sin permiso.
+Cada creador gestiona su propio cat谩logo. Est谩 prohibido copiar plugins de otros repositorios y subirlos aqu铆 sin permiso.
 
 3. Uso Correcto
-Los complementos aquí publicados son gratuitos y para uso personal. No se permite su venta.
+Los complementos aqu铆 publicados son gratuitos y para uso personal. No se permite su venta.
 
 Al usar esta tienda, aceptas estas condiciones y apoyas el desarrollo inclusivo.
     ]]
@@ -428,461 +447,4 @@ end
 
 local function mostrarPerfiles()
     local dlg = LuaDialog(ctx)
-    dlg.setTitle("Equipo TIPI")
-    
-    local layout = LinearLayout(ctx)
-    layout.setOrientation(LinearLayout.VERTICAL)
-    layout.setPadding(30, 30, 30, 30)
-    layout.setBackgroundColor(COLOR_FONDO)
-    
-    local perfiles = {
-        "👤 Sara González\n   Creadora de TIPI",
-        "👤 Miguel\n   Administrador y Desarrollador",
-        "👤 Alejandro Romero\n   Colaborador",
-        "👤 Samuel López\n   Colaborador",
-        "👤 Néstor Ayala\n   Colaborador"
-    }
-    
-    for _, nombre in ipairs(perfiles) do
-        local t = TextView(ctx)
-        t.setText(nombre)
-        t.setTextColor(COLOR_TEXTO)
-        t.setTextSize(16)
-        t.setPadding(0, 20, 0, 20)
-        layout.addView(t)
-    end
-    
-    dlg.setView(layout)
-    dlg.setNegativeButton("Cerrar", function() dlg.dismiss() end)
-    dlg.show()
-    pcall(function()
-        dlg.getWindow().setBackgroundDrawable(ColorDrawable(COLOR_FONDO))
-    end)
-end
-
--- =====================================================================
--- TIENDA Y TARJETAS
--- =====================================================================
-local function crearTarjetaStore(tienda)
-    local card = LinearLayout(ctx)
-    card.setOrientation(LinearLayout.VERTICAL)
-    card.setPadding(40, 40, 40, 40)
-    
-    local bg = GradientDrawable()
-    bg.setColor(COLOR_TARJETA)
-    bg.setCornerRadius(40)
-    bg.setStroke(2, COLOR_BLANCO)
-    card.setBackground(bg)
-    
-    local titulo = TextView(ctx)
-    titulo.setText(tienda.nombre or "Tienda sin nombre")
-    titulo.setTextColor(COLOR_TEXTO)
-    titulo.setTextSize(20)
-    
-    local subtitulo = TextView(ctx)
-    subtitulo.setText(tienda.descripcion or "Sin descripción")
-    subtitulo.setTextColor(COLOR_TEXTO_SEC)
-    subtitulo.setTextSize(14)
-    subtitulo.setPadding(0, 15, 0, 0)
-    
-    card.addView(titulo)
-    card.addView(subtitulo)
-    
-    card.setOnClickListener(function()
-        if not tienda.url_json or tienda.url_json == "" then
-            service.speak("Esta tienda aún no tiene plugins disponibles, próximamente.")
-        else
-            service.speak("Abriendo " .. (tienda.nombre or "tienda"))
-            cargarPluginsDeTienda(tienda.url_json)
-        end
-    end)
-    
-    return card
-end
-
-local function ejecutar_descarga(url_archivo, nombre_archivo, nombre_plugin)
-    if not verificarPermisoAlmacenamiento() then return end
-    local dir_plugins = "/storage/emulated/0/解说/Plugins/"
-    local nombre_carpeta = string.gsub(nombre_archivo, "%.lua$", "")
-    local dir_plugin_especifico = dir_plugins .. nombre_carpeta .. "/"
-    local dir_obj = File(dir_plugin_especifico)
-    if not dir_obj.exists() then dir_obj.mkdirs() end
-    local ruta_destino = dir_plugin_especifico .. "main.lua"
-
-    log("Descargando " .. nombre_plugin .. "...")
-    service.speak("Descargando " .. nombre_plugin)
-
-    Thread(Runnable{
-        run = function()
-            local body, code, err = descargarTextoHttp(url_archivo)
-            handler.post(function()
-                if err or code ~= 200 or not body or #body == 0 then
-                    log("Error al descargar. Código: " .. tostring(code))
-                    return
-                end
-                body = string.gsub(body, "^%s+", "")
-                local archivo = io.open(ruta_destino, "wb")
-                if archivo then
-                    archivo:write(body)
-                    archivo:close()
-                    log("¡Instalado con éxito! Reinicie Jieshuo.")
-                else
-                    log("Error al escribir archivo.")
-                end
-            end)
-        end
-    }).start()
-end
-
-local function verificar_e_instalar(url_archivo, nombre_archivo, nombre_plugin)
-    local nombre_carpeta = string.gsub(nombre_archivo, "%.lua$", "")
-    local ruta_destino = "/storage/emulated/0/解说/Plugins/" .. nombre_carpeta .. "/main.lua"
-    if File(ruta_destino).exists() then
-        local alert = LuaDialog(ctx)
-        alert.setTitle("Plugin existente")
-        alert.setMessage("El complemento ya está instalado. ¿Desea sobrescribirlo?")
-        alert.setPositiveButton("Sí", function()
-            alert.dismiss()
-            ejecutar_descarga(url_archivo, nombre_archivo, nombre_plugin)
-        end)
-        alert.setNegativeButton("No", function() alert.dismiss() end)
-        alert.show()
-    else
-        ejecutar_descarga(url_archivo, nombre_archivo, nombre_plugin)
-    end
-end
-
-
-local function abrirAPK(url_archivo, nombre)
-    local ok = pcall(function()
-        local intent = Intent(Intent.ACTION_VIEW)
-        intent.setData(Uri.parse(tostring(url_archivo)))
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        ctx.startActivity(intent)
-    end)
-    if ok then
-        service.speak("Abriendo descarga de " .. tostring(nombre))
-    else
-        service.speak("No se pudo abrir la descarga de " .. tostring(nombre))
-    end
-end
-
-function cargarPluginsDeTienda(url_json_tienda)
-    service.speak("Cargando catálogo...")
-    Thread(Runnable{
-        run = function()
-            local body, code, err = descargarTextoHttp(url_json_tienda)
-            handler.post(function()
-                if code == 200 and body and body ~= "" then
-                    local status, data = pcall(function() return json.decode(body) end)
-                    if not status or type(data) ~= "table" then
-                        log("Error: el catálogo no contiene JSON válido.")
-                        service.speak("El catálogo tiene errores.")
-                        return
-                    end
-
-                    -- Formato antiguo: una lista directa de plugins.
-                    -- Formato nuevo: {plugins = [...], aplicaciones = [...]}
-                    local lista = {}
-                    if data.plugins or data.aplicaciones then
-                        if type(data.plugins) == "table" then
-                            for _, p in ipairs(data.plugins) do
-                                table.insert(lista, {
-                                    tipo = "plugin",
-                                    nombre = p.nombre or "Plugin sin nombre",
-                                    version = p.version or p.versionName or "1.0",
-                                    descripcion = p.descripcion or "Sin descripción",
-                                    archivo = p.archivo,
-                                    url_base = p.url_base,
-                                    url = p.url or p.url_archivo
-                                })
-                            end
-                        end
-                        if type(data.aplicaciones) == "table" then
-                            for _, a in ipairs(data.aplicaciones) do
-                                table.insert(lista, {
-                                    tipo = "apk",
-                                    nombre = a.nombre or "Aplicación sin nombre",
-                                    version = a.versionName or a.version or "1.0",
-                                    descripcion = a.descripcion or "Aplicación Android",
-                                    url = a.url or a.apkUrl,
-                                    apkUrl = a.url or a.apkUrl
-                                })
-                            end
-                        end
-                    else
-                        lista = data
-                    end
-
-                    if #lista > 0 then
-                        mostrarVentanaPlugins(lista)
-                    else
-                        log("El catálogo está vacío.")
-                        service.speak("No hay elementos disponibles en esta tienda.")
-                    end
-                else
-                    service.speak("Error al conectar con la tienda.")
-                end
-            end)
-        end
-    }).start()
-end
-
-function mostrarVentanaPlugins(plugins_table)
-    local dlg = LuaDialog(ctx)
-    dlg.setTitle("Seleccionar elemento")
-
-    local scroll = ScrollView(ctx)
-    local layout = LinearLayout(ctx)
-    layout.setOrientation(LinearLayout.VERTICAL)
-    layout.setPadding(20, 20, 20, 20)
-    layout.setBackgroundColor(COLOR_FONDO)
-    scroll.addView(layout)
-
-    for _, comp in ipairs(plugins_table) do
-        local card = LinearLayout(ctx)
-        card.setOrientation(LinearLayout.VERTICAL)
-        card.setPadding(30, 30, 30, 30)
-
-        local bg = GradientDrawable()
-        bg.setColor(COLOR_TARJETA)
-        bg.setCornerRadius(30)
-        card.setBackground(bg)
-
-        local nombre = tostring(comp.nombre or "Sin nombre")
-        local version = tostring(comp.version or "1.0")
-        local tipo = comp.tipo == "apk" and "Aplicación APK" or "Plugin Lua"
-
-        local t1 = TextView(ctx)
-        t1.setText(nombre .. " (v" .. version .. ")")
-        t1.setTextColor(COLOR_TEXTO)
-        t1.setTextSize(18)
-
-        local t2 = TextView(ctx)
-        t2.setText(tipo .. "\n" .. tostring(comp.descripcion or "Sin descripción"))
-        t2.setTextColor(COLOR_TEXTO_SEC)
-        t2.setTextSize(14)
-        t2.setPadding(0, 10, 0, 20)
-
-        local btn = Button(ctx)
-        btn.setText(comp.tipo == "apk" and "DESCARGAR APK" or "INSTALAR PLUGIN")
-        btn.setTextColor(Color.WHITE)
-
-        local btnBg = GradientDrawable()
-        btnBg.setColor(comp.tipo == "apk" and COLOR_BOTON_ROJO or COLOR_BOTON_AZUL)
-        btnBg.setCornerRadius(20)
-        btn.setBackground(btnBg)
-        btn.setContentDescription(btn.getText())
-
-        btn.setOnClickListener(function()
-            dlg.dismiss()
-            if comp.tipo == "apk" then
-                if comp.url and tostring(comp.url) ~= "" then
-                    abrirAPK(comp.url, nombre)
-                else
-                    service.speak("La aplicación no tiene enlace de descarga.")
-                end
-            else
-                local url_descarga = comp.url
-                if not url_descarga or tostring(url_descarga) == "" then
-                    url_descarga = (comp.url_base or "") .. (comp.archivo or "")
-                end
-                verificar_e_instalar(url_descarga, comp.archivo or "main.lua", nombre)
-            end
-        end)
-
-        card.addView(t1)
-        card.addView(t2)
-        card.addView(btn)
-        local lp = LinearLayout.LayoutParams(-1, -2)
-        lp.setMargins(0, 0, 0, 20)
-        layout.addView(card, lp)
-    end
-
-    dlg.setView(scroll)
-    dlg.setNegativeButton("Cerrar", function() dlg.dismiss() end)
-    dlg.show()
-    pcall(function() dlg.getWindow().setBackgroundDrawable(ColorDrawable(COLOR_FONDO)) end)
-end
-
-local function mostrarHub(tiendas)
-    lista_tiendas = tiendas
-    if mainDialog then mainDialog.dismiss() end
-    mainDialog = LuaDialog(ctx)
-    mainDialog.setTitle("TIPI Store Colaborativa")
-    
-    local root = LinearLayout(ctx)
-    root.setOrientation(LinearLayout.VERTICAL)
-    root.setBackgroundColor(COLOR_FONDO)
-    root.setPadding(30, 30, 30, 30)
-    root.setLayoutParams(LinearLayout.LayoutParams(-1, -1))
-    
-    local btnBar = LinearLayout(ctx)
-    btnBar.setOrientation(LinearLayout.HORIZONTAL)
-    local lpBar = LinearLayout.LayoutParams(-1, -2)
-    lpBar.setMargins(0, 0, 0, 20)
-    root.addView(btnBar, lpBar)
-    
-    local btnPerfiles = Button(ctx)
-    btnPerfiles.setText("PERFILES")
-    btnPerfiles.setTextColor(Color.WHITE)
-    local bgPerfil = GradientDrawable()
-    bgPerfil.setColor(COLOR_BOTON_ROJO)
-    bgPerfil.setCornerRadius(20)
-    btnPerfiles.setBackground(bgPerfil)
-    local lpBtn1 = LinearLayout.LayoutParams(0, -2, 1)
-    lpBtn1.setMargins(0, 0, 10, 0)
-    btnBar.addView(btnPerfiles, lpBtn1)
-    
-    local btnTerminos = Button(ctx)
-    btnTerminos.setText("TÉRMINOS")
-    btnTerminos.setTextColor(Color.WHITE)
-    local bgTerm = GradientDrawable()
-    bgTerm.setColor(COLOR_BOTON_AZUL)
-    bgTerm.setCornerRadius(20)
-    btnTerminos.setBackground(bgTerm)
-    local lpBtn2 = LinearLayout.LayoutParams(0, -2, 1)
-    btnBar.addView(btnTerminos, lpBtn2)
-    
-    -- BOTÓN SECRETO DE ADMIN
-    local btnAdmin = Button(ctx)
-    btnAdmin.setText("PUBLICAR")
-    btnAdmin.setTextColor(Color.WHITE)
-    local bgAdmin = GradientDrawable()
-    bgAdmin.setColor(0xFF333333)
-    bgAdmin.setCornerRadius(20)
-    btnAdmin.setBackground(bgAdmin)
-    local lpBtn3 = LinearLayout.LayoutParams(-2, -2)
-    btnBar.addView(btnAdmin, lpBtn3)
-    
-    btnPerfiles.onClick = function() mostrarPerfiles() end
-    btnTerminos.onClick = function() mostrarTerminos() end
-    btnAdmin.onClick = function() abrirPanelAdmin() end
-    
-    local buscador = EditText(ctx)
-    buscador.setHint("Buscar tienda...")
-    buscador.setTextColor(0xFF000000)
-    buscador.setHintTextColor(0xFF666666)
-    
-    local searchBg = GradientDrawable()
-    searchBg.setColor(COLOR_BLANCO)
-    searchBg.setCornerRadius(30)
-    buscador.setBackground(searchBg)
-    buscador.setPadding(30, 30, 30, 30)
-    
-    local lpBus = LinearLayout.LayoutParams(-1, -2)
-    lpBus.setMargins(0, 0, 0, 30)
-    root.addView(buscador, lpBus)
-    
-    local scroll = ScrollView(ctx)
-    local contenedor = LinearLayout(ctx)
-    contenedor.setOrientation(LinearLayout.VERTICAL)
-    scroll.addView(contenedor)
-    local lpScroll = LinearLayout.LayoutParams(-1, 0)
-    lpScroll.weight = 1
-    root.addView(scroll, lpScroll)
-    
-    local barraInferior = LinearLayout(ctx)
-    barraInferior.setOrientation(LinearLayout.HORIZONTAL)
-    barraInferior.setPadding(0, 20, 0, 0)
-    
-    local btnCerrar = Button(ctx)
-    btnCerrar.setText("Cerrar tienda")
-    btnCerrar.setTextColor(COLOR_BOTON_ROJO)
-    
-    local closeBg = GradientDrawable()
-    closeBg.setColor(Color.TRANSPARENT)
-    closeBg.setStroke(2, COLOR_BOTON_ROJO)
-    closeBg.setCornerRadius(30)
-    btnCerrar.setBackground(closeBg)
-    
-    btnCerrar.setOnClickListener(function() mainDialog.dismiss() end)
-    barraInferior.addView(btnCerrar, LinearLayout.LayoutParams(-1, -2))
-    root.addView(barraInferior)
-    
-    mainDialog.setView(root)
-    mainDialog.show()
-    
-    pcall(function()
-        local window = mainDialog.getWindow()
-        window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-        window.setBackgroundDrawable(ColorDrawable(COLOR_FONDO))
-    end)
-    
-    local function dibujar(lista)
-        contenedor.removeAllViews()
-        for _, tienda in ipairs(lista) do
-            local card = crearTarjetaStore(tienda)
-            local lp = LinearLayout.LayoutParams(-1, -2)
-            lp.setMargins(0, 0, 0, 20)
-            contenedor.addView(card, lp)
-        end
-    end
-    
-    dibujar(tiendas)
-    
-    buscador.addTextChangedListener({
-        onTextChanged = function(s)
-            local texto = string.lower(tostring(s))
-            local filtrados = {}
-            for _, t in ipairs(lista_tiendas) do
-                if string.find(string.lower(t.nombre or ""), texto, 1, true) then
-                    table.insert(filtrados, t)
-                end
-            end
-            dibujar(filtrados)
-        end
-    })
-end
-
-local function verificarActualizacion(data)
-    local prefs = ctx.getSharedPreferences("TIPIStorePrefs", 0)
-    local versionGuardada = prefs.getString("version_aceptada", "0.0")
-    local versionRemota = tonumber(data.version) or 0
-    local versionLocal = tonumber(versionGuardada) or 0
-    
-    if versionRemota > versionLocal then
-        local dlg = LuaDialog(ctx)
-        dlg.setTitle("Tienda actualizada")
-        dlg.setMessage("Versión: " .. data.version .. "\n\nCambios en esta versión:\n" .. (data.cambios or ""))
-        dlg.setPositiveButton("ACEPTAR Y CONTINUAR", function() 
-            prefs.edit().putString("version_aceptada", tostring(data.version)).apply()
-            dlg.dismiss()
-            mostrarHub(data.tiendas)
-        end)
-        dlg.show()
-    else
-        mostrarHub(data.tiendas)
-    end
-end
-
-log("Conectando con TIPI Store...")
-
-if not json then
-    service.speak("Error: La librería JSON no está instalada.")
-    return
-end
-
-Thread(Runnable{
-    run = function()
-        local body, code, err = descargarTextoHttp(HUB_JSON_URL)
-        handler.post(function()
-            if code == 200 and body and body ~= "" then
-                local status, data = pcall(function() return json.decode(body) end)
-                if status then
-                    if data and data.tiendas then
-                        verificarActualizacion(data)
-                    else
-                        service.speak("El JSON no contiene la lista de tiendas.")
-                    end
-                else
-                    service.speak("El JSON tiene errores de escritura.")
-                end
-            else
-                service.speak("Error de conexión. Código: " .. tostring(code))
-            end
-        end)
-    end
-}).start()
-
-return true
+    dlg.setTitle("Equipo TIP
