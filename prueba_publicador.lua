@@ -216,15 +216,31 @@ local function subirPluginCompleto(user, repo, token, nombre_json, nombre_archiv
                         sha_json = data.sha
                         -- Decodificar el Base64 que devuelve GitHub para leer el JSON real
                         local base64_raw = tostring(data.content):gsub("%s+", "")
-                        contenido_json_actual = luajava.newInstance("java.lang.String", Base64.decode(base64_raw, Base64.DEFAULT), "UTF-8")
+                        contenido_json_actual = tostring(luajava.newInstance("java.lang.String", Base64.decode(base64_raw, Base64.DEFAULT), "UTF-8"))
                     end
                 end
                 connGetJson.disconnect()
 
-                -- Parsear el JSON actual, agregar el nuevo plugin y volver a codificar
-                local lista_plugins = json.decode(contenido_json_actual) or {}
+                -- Parsear el JSON actual y conservar su estructura.
+                contenido_json_actual = tostring(contenido_json_actual or "")
+                local okCatalogo, catalogo = pcall(function()
+                    return json.decode(contenido_json_actual)
+                end)
+                if not okCatalogo or type(catalogo) ~= "table" then
+                    catalogo = { version = 1, plugins = {}, aplicaciones = {} }
+                end
+
+                local lista_plugins
+                if catalogo.plugins and type(catalogo.plugins) == "table" then
+                    lista_plugins = catalogo.plugins
+                else
+                    -- Compatibilidad con cat谩logos antiguos que eran una lista directa.
+                    lista_plugins = catalogo
+                    catalogo = { version = 1, plugins = lista_plugins, aplicaciones = {} }
+                end
+
                 local url_base = "https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/main/"
-                
+
                 table.insert(lista_plugins, {
                     nombre = nombre_visible,
                     archivo = nombre_archivo,
@@ -233,8 +249,11 @@ local function subirPluginCompleto(user, repo, token, nombre_json, nombre_archiv
                     descripcion = desc_visible,
                     url_base = url_base
                 })
-                
-                local nuevo_json_string = json.encode(lista_plugins)
+                catalogo.plugins = lista_plugins
+                if type(catalogo.aplicaciones) ~= "table" then catalogo.aplicaciones = {} end
+                if not catalogo.version then catalogo.version = 1 end
+
+                local nuevo_json_string = json.encode(catalogo)
                 local base64_json = Base64.encodeToString(luajava.newInstance("java.lang.String", nuevo_json_string).getBytes("UTF-8"), Base64.NO_WRAP)
 
                 local dataJson = { message = "Actualizando cat谩logo con " .. nombre_visible, content = base64_json }
