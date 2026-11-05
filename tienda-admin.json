@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "plugins": [
     {
       "nombre": "Tienda de administradores",
@@ -9,5 +9,13 @@
       "url_base": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/"
     }
   ],
-  "aplicaciones": []
+  "aplicaciones": [
+    {
+      "nombre": "DJ TIPY",
+      "versionCode": 4,
+      "versionName": "4.0",
+      "descripcion": "Reproductor musical accesible para Tecnología Inclusiva Paraguay.",
+      "url": "https://github.com/benitezmiguel1906-afk/tienda-tipy/releases/download/V4.0/DJ-TIPY-4.0.apk"
+    }
+  ]
 }
