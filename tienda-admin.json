@@ -1,1 +1,56 @@
-{"aplicaciones":[{"versionName":"4.0","url":"https:\/\/github.com\/benitezmiguel1906-afk\/tienda-tipy\/releases\/download\/V4.0\/DJ-TIPY-4.0.apk","versionCode":4,"nombre":"DJ TIPY","descripcion":"Reproductor musical accesible para Tecnología Inclusiva Paraguay."}],"plugins":[{"archivo":"plugin_tienda_administradores.lua","url_base":"https:\/\/raw.githubusercontent.com\/benitezmiguel1906-afk\/tienda-tipy\/main\/","descripcion":"Tienda exclusiva para administradores.","nombre":"Tienda de administradores","version":"1.0"},{"autor":"benitezmiguel1906-afk","archivo":"prueba_publicador.lua","url_base":"https:\/\/raw.githubusercontent.com\/benitezmiguel1906-afk\/tienda-tipy\/main\/","descripcion":"Prueba de publicación automática del catálogo de administradores.\n","nombre":"prueba_publicador.","version":"1.0"},{"autor":"benitezmiguel1906-afk","tipo":"plugin","archivo":"control_sonidos_de_tipy.lua","url_base":"https:\/\/raw.githubusercontent.com\/benitezmiguel1906-afk\/tienda-tipy\/main\/","descripcion":"Controla el panel de sonidos ","nombre":"Control de sonidos ","version":"1.0"},{"autor":"benitezmiguel1906-afk","tipo":"plugin","archivo":"Escaneo_de_documentos_WhatsApp_tipy.lua","url_base":"https:\/\/raw.githubusercontent.com\/benitezmiguel1906-afk\/tienda-tipy\/main\/","descripcion":"Esta aplicación simplifica los pasos para escanear un documento en un chat de WhatsApp ","nombre":"Escaneo de documentos de WhatsApp TIPY","version":"1.0"},{"archivo":"block-de-notas-tipy.lua","tipo":"plugin","descripcion":"un bloc de notas sencillo, dónde puedes editar tus notas o textos a gusto.\ntambién lo puedes compartir y guardar en diferentes formatos, cómo en pdf, 2 y txt ","url_base":"https:\/\/raw.githubusercontent.com\/benitezmiguel1906-afk\/tienda-tipy\/main\/","autor":"benitezmiguel1906-afk","nombre":"Notas Tipy ","version":"1.0"}],"version":5}
+{
+  "aplicaciones": [
+    {
+      "versionName": "4.0",
+      "url": "https://github.com/benitezmiguel1906-afk/tienda-tipy/releases/download/V4.0/DJ-TIPY-4.0.apk",
+      "versionCode": 4,
+      "nombre": "DJ TIPY",
+      "descripcion": "Reproductor musical accesible para Tecnología Inclusiva Paraguay."
+    }
+  ],
+  "plugins": [
+    {
+      "archivo": "plugin_tienda_administradores.lua",
+      "url_base": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/",
+      "descripcion": "Tienda exclusiva para administradores.",
+      "nombre": "Tienda de administradores",
+      "version": "1.0"
+    },
+    {
+      "autor": "benitezmiguel1906-afk",
+      "archivo": "prueba_publicador.lua",
+      "url_base": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/",
+      "descripcion": "Prueba de publicación automática del catálogo de administradores.",
+      "nombre": "prueba_publicador.",
+      "version": "1.0"
+    },
+    {
+      "autor": "benitezmiguel1906-afk",
+      "tipo": "plugin",
+      "archivo": "control_sonidos_de_tipy.lua",
+      "url_base": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/",
+      "descripcion": "Controla el panel de sonidos ",
+      "nombre": "Control de sonidos ",
+      "version": "1.0"
+    },
+    {
+      "autor": "benitezmiguel1906-afk",
+      "tipo": "plugin",
+      "archivo": "Escaneo_de_documentos_WhatsApp_tipy.lua",
+      "url_base": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/",
+      "descripcion": "Esta aplicación simplifica los pasos para escanear un documento en un chat de WhatsApp ",
+      "nombre": "Escaneo de documentos de WhatsApp TIPY",
+      "version": "1.0"
+    },
+    {
+      "archivo": "block-de-notas-tipy.lua",
+      "tipo": "plugin",
+      "descripcion": "un bloc de notas sencillo, dónde puedes editar tus notas o textos a gusto.\ntambién lo puedes compartir y guardar en diferentes formatos, cómo en pdf, 2 y txt ",
+      "url_base": "https://raw.githubusercontent.com/benitezmiguel1906-afk/tienda-tipy/main/",
+      "autor": "benitezmiguel1906-afk",
+      "nombre": "Notas Tipy ",
+      "version": "1.0"
+    }
+  ],
+  "version": 5
+}
